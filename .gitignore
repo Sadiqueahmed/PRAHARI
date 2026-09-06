@@ -1,0 +1,28 @@
+# Project Prahari
+.env
+*.log
+node_modules/
+dist/
+build/
+.gradle/
+*.class
+*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+prahari_pgdata/
+prahari_pgadmin_data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

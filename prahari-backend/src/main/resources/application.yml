@@ -1,0 +1,116 @@
+# ====================================================================
+# Project Prahari — Spring Boot Application Configuration
+# ====================================================================
+# This is the base configuration. Profile-specific overrides are in
+# application-dev.yml and application-prod.yml.
+# ====================================================================
+
+spring:
+  application:
+    name: prahari-backend
+
+  # ---- Database Configuration ----
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:prahari}
+    username: ${POSTGRES_USER:prahari_admin}
+    password: ${POSTGRES_PASSWORD:prahari_dev_pass_2024}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 30000
+
+  # ---- JPA / Hibernate ----
+  jpa:
+    open-in-view: false   # Best practice: disable lazy-loading in controllers
+    hibernate:
+      ddl-auto: validate  # Flyway manages schema — Hibernate only validates
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    show-sql: false
+
+  # ---- Flyway Database Migration ----
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # ---- Jackson (JSON serialization) ----
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  # ---- Virtual Threads (Java 21) ----
+  threads:
+    virtual:
+      enabled: true
+
+# ====================================================================
+# JWT Configuration
+# ====================================================================
+prahari:
+  jwt:
+    secret: ${JWT_SECRET:default-dev-secret-change-in-production-please-64chars-min}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours
+
+  # ---- WhatsApp Business Cloud API ----
+  whatsapp:
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+    api-version: ${WHATSAPP_API_VERSION:v21.0}
+    base-url: https://graph.facebook.com
+
+  # ---- Twilio SMS ----
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    phone-number: ${TWILIO_PHONE_NUMBER:}
+
+  # ---- Fast2SMS ----
+  fast2sms:
+    api-key: ${FAST2SMS_API_KEY:}
+    base-url: https://www.fast2sms.com/dev/bulkV2
+
+  # ---- CORS ----
+  cors:
+    allowed-origins: ${FRONTEND_URL:http://localhost:5173}
+
+# ====================================================================
+# Server Configuration
+# ====================================================================
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# ====================================================================
+# Actuator (Health Checks)
+# ====================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# ====================================================================
+# Logging
+# ====================================================================
+logging:
+  level:
+    com.prahari: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.security: WARN

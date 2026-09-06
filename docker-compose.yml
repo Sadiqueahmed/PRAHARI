@@ -1,0 +1,74 @@
+# ====================================================================
+# Project Prahari — Docker Compose Configuration
+# Multi-Hazard Disaster Intelligence Platform
+# ====================================================================
+# Services:
+#   - postgres: PostgreSQL 16 with PostGIS 3.4 extension
+#   - pgadmin:  PgAdmin 4 for visual database management
+# ====================================================================
+
+services:
+  # ------------------------------------------------------------------
+  # PostgreSQL 16 + PostGIS 3.4
+  # PostGIS is CRITICAL for spatial queries (ST_Within, ST_Buffer, etc.)
+  # Used by the Alert Engine to find users within hazard polygons.
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: prahari-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-prahari}
+      POSTGRES_USER: ${POSTGRES_USER:-prahari_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prahari_dev_pass_2024}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Persistent data volume — survives container restarts
+      - prahari_pgdata:/var/lib/postgresql/data
+      # Auto-run initialization scripts on first boot
+      - ./prahari-db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prahari_admin} -d ${POSTGRES_DB:-prahari}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - prahari-network
+
+  # ------------------------------------------------------------------
+  # PgAdmin 4 — Visual Database Management
+  # Access at http://localhost:5050
+  # Login with the email/password below, then add the server:
+  #   Host: postgres | Port: 5432 | DB: prahari
+  # ------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: prahari-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@prahari.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - prahari_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prahari-network
+
+# Named volumes for data persistence
+volumes:
+  prahari_pgdata:
+    driver: local
+  prahari_pgadmin_data:
+    driver: local
+
+# Isolated network for inter-service communication
+networks:
+  prahari-network:
+    driver: bridge

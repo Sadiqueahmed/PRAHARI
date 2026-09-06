@@ -1,0 +1,16 @@
+# ====================================================================
+# Project Prahari — Development Profile Overrides
+# ====================================================================
+# Activate with: --spring.profiles.active=dev
+# ====================================================================
+
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+logging:
+  level:
+    com.prahari: DEBUG
+    org.hibernate.SQL: DEBUG
