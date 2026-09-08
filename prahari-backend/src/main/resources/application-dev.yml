@@ -8,7 +8,9 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update   # Auto-create/update schema in dev (Flyway handles prod)
+  flyway:
+    enabled: true         # Flyway runs V1__init_schema.sql to set up PostGIS extensions
 
 logging:
   level:

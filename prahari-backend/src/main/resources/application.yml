@@ -28,7 +28,7 @@ spring:
       ddl-auto: validate  # Flyway manages schema — Hibernate only validates
     properties:
       hibernate:
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        # Hibernate 6 auto-detects PostGIS dialect from JDBC driver — no explicit dialect needed
         format_sql: true
         jdbc:
           time_zone: UTC
@@ -59,7 +59,9 @@ spring:
 # ====================================================================
 prahari:
   jwt:
-    secret: ${JWT_SECRET:default-dev-secret-change-in-production-please-64chars-min}
+    # Must be a valid Base64-encoded string (at least 256 bits for HS256)
+    # Generate with: echo -n 'your-secret-key-at-least-32-characters-long!!' | base64
+    secret: ${JWT_SECRET:ZGVmYXVsdC1kZXYtc2VjcmV0LWNoYW5nZS1pbi1wcm9kdWN0aW9uLXBsZWFzZS02NGNoYXJzLW1pbg==}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours
 
   # ---- WhatsApp Business Cloud API ----
