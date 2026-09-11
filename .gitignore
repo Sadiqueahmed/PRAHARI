@@ -7,6 +7,7 @@ build/
 .gradle/
 *.class
 *.jar
+!**/gradle-wrapper.jar
 
 # IDE
 .idea/
