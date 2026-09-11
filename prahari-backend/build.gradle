@@ -36,6 +36,9 @@ dependencies {
     // Hibernate Spatial is bundled in Hibernate 6 — provides JTS geometry mapping
     implementation 'org.hibernate.orm:hibernate-spatial'
 
+    // JTS IO Common — contains GeoJsonReader/GeoJsonWriter for parsing GeoJSON
+    implementation 'org.locationtech.jts.io:jts-io-common:1.20.0'
+
     // Jackson module for serializing JTS geometries to/from GeoJSON
     implementation 'org.n52.jackson:jackson-datatype-jts:1.2.10'
 
@@ -64,7 +67,8 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// Enable Spring Boot's virtual threads support (Java 21)
+// Virtual threads are GA in Java 21+ — no preview flag needed
 bootRun {
-    jvmArgs = ['--enable-preview']
+    // Pass env vars from .env to the JVM
+    systemProperty 'spring.profiles.active', 'dev'
 }

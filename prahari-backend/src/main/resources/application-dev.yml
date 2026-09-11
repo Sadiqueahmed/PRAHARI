@@ -10,7 +10,7 @@ spring:
     hibernate:
       ddl-auto: update   # Auto-create/update schema in dev (Flyway handles prod)
   flyway:
-    enabled: true         # Flyway runs V1__init_schema.sql to set up PostGIS extensions
+    enabled: false        # Docker init scripts handle schema in dev; Flyway for prod only
 
 logging:
   level:
