@@ -27,7 +27,7 @@ INSERT INTO users (email, password_hash, full_name, phone, whatsapp_id, role_id,
     -- Citizen in Guwahati, Assam
     (
         'citizen@prahari.dev',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        '$2b$10$iqgMX8SPE6kdF6pLNaMsPeKPSmKWSflHJQHnxPzbGcLwNT5oiIWJ.',
         'Rina Kalita',
         '+919876543210',
         '919876543210',
@@ -38,7 +38,7 @@ INSERT INTO users (email, password_hash, full_name, phone, whatsapp_id, role_id,
     -- NGO worker in Dibrugarh, Assam
     (
         'ngo@prahari.dev',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        '$2b$10$iqgMX8SPE6kdF6pLNaMsPeKPSmKWSflHJQHnxPzbGcLwNT5oiIWJ.',
         'Bhaskar Gogoi',
         '+919876543211',
         '919876543211',
@@ -49,7 +49,7 @@ INSERT INTO users (email, password_hash, full_name, phone, whatsapp_id, role_id,
     -- Government official in Shillong, Meghalaya
     (
         'govt@prahari.dev',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        '$2b$10$iqgMX8SPE6kdF6pLNaMsPeKPSmKWSflHJQHnxPzbGcLwNT5oiIWJ.',
         'Dr. David Lyngdoh',
         '+919876543212',
         '919876543212',
@@ -60,7 +60,7 @@ INSERT INTO users (email, password_hash, full_name, phone, whatsapp_id, role_id,
     -- Super Admin
     (
         'admin@prahari.dev',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        '$2b$10$iqgMX8SPE6kdF6pLNaMsPeKPSmKWSflHJQHnxPzbGcLwNT5oiIWJ.',
         'System Administrator',
         '+919876543200',
         '919876543200',

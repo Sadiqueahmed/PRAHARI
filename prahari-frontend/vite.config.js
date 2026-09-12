@@ -11,6 +11,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // Read .env files from project root (parent dir) where VITE_MAPBOX_TOKEN lives
+  envDir: '../',
   server: {
     port: 5173,
     // Proxy API requests to Spring Boot backend during development

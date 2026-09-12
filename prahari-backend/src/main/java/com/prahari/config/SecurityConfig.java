@@ -79,6 +79,9 @@ public class SecurityConfig {
                         // Hazard data — readable by all authenticated users
                         .requestMatchers(HttpMethod.GET, "/hazards/**").authenticated()
 
+                        // River monitoring data — readable by all authenticated users
+                        .requestMatchers(HttpMethod.GET, "/rivers/**").authenticated()
+
                         // Hazard creation — only backend services (via API key) or GOVERNMENT+
                         .requestMatchers(HttpMethod.POST, "/hazards/**").hasAnyAuthority(
                                 "GOVERNMENT", "SUPER_ADMIN")
