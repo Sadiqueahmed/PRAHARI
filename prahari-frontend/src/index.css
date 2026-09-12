@@ -2,7 +2,7 @@
  * Project Prahari — Design System & Global Styles
  * ====================================================================
  * Tailwind CSS v4 (CSS-first configuration)
- * Design: Dark-themed glassmorphism with hazard-aware color palette
+ * Design: Light-themed glassmorphism with hazard-aware color palette
  * ==================================================================== */
 
 @import "tailwindcss";
@@ -12,44 +12,44 @@
  * ==================================================================== */
 @theme {
   /* ---- Hazard-Aware Color Palette ---- */
-  --color-flood: #3B82F6;
+  --color-flood: #2563EB;
   --color-flood-light: #60A5FA;
   --color-flood-dark: #1D4ED8;
 
-  --color-earthquake: #F59E0B;
+  --color-earthquake: #D97706;
   --color-earthquake-light: #FBBF24;
-  --color-earthquake-dark: #D97706;
+  --color-earthquake-dark: #B45309;
 
-  --color-landslide: #EF4444;
+  --color-landslide: #DC2626;
   --color-landslide-light: #F87171;
-  --color-landslide-dark: #DC2626;
+  --color-landslide-dark: #B91C1C;
 
-  --color-airquality: #8B5CF6;
+  --color-airquality: #7C3AED;
   --color-airquality-light: #A78BFA;
-  --color-airquality-dark: #7C3AED;
+  --color-airquality-dark: #6D28D9;
 
-  --color-safe: #10B981;
+  --color-safe: #059669;
   --color-safe-light: #34D399;
-  --color-safe-dark: #059669;
+  --color-safe-dark: #047857;
 
   --color-sos: #DC2626;
   --color-sos-pulse: #EF4444;
 
-  /* ---- Panel / Surface Colors ---- */
-  --color-panel: rgba(15, 23, 42, 0.75);
-  --color-panel-solid: #0F172A;
-  --color-panel-hover: rgba(15, 23, 42, 0.85);
-  --color-panel-border: rgba(148, 163, 184, 0.15);
+  /* ---- Panel / Surface Colors (Light) ---- */
+  --color-panel: rgba(255, 255, 255, 0.82);
+  --color-panel-solid: #FFFFFF;
+  --color-panel-hover: rgba(255, 255, 255, 0.92);
+  --color-panel-border: rgba(0, 0, 0, 0.08);
 
-  /* ---- Sidebar ---- */
-  --color-sidebar: rgba(2, 6, 23, 0.92);
-  --color-sidebar-hover: rgba(30, 41, 59, 0.8);
-  --color-sidebar-active: rgba(59, 130, 246, 0.2);
+  /* ---- Sidebar (Light) ---- */
+  --color-sidebar: rgba(248, 250, 252, 0.95);
+  --color-sidebar-hover: rgba(241, 245, 249, 0.9);
+  --color-sidebar-active: rgba(37, 99, 235, 0.1);
 
-  /* ---- Text ---- */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  /* ---- Text (Light) ---- */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
 
   /* ---- Font ---- */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -79,31 +79,31 @@ html, body, #root {
   overflow: hidden;
   font-family: var(--font-sans);
   color: var(--color-text-primary);
-  background: #020617;
+  background: #F1F5F9;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* ====================================================================
- * Glassmorphism Panel Component
+ * Glassmorphism Panel Component (Light)
  * ==================================================================== */
 .glass-panel {
   background: var(--color-panel);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--radius-panel);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    0 4px 24px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel:hover {
   background: var(--color-panel-hover);
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 /* ====================================================================
@@ -136,7 +136,7 @@ html, body, #root {
 }
 
 /* ====================================================================
- * Sidebar Styles
+ * Sidebar Styles (Light)
  * ==================================================================== */
 .sidebar {
   background: var(--color-sidebar);
@@ -168,10 +168,11 @@ html, body, #root {
 .sidebar-item.active {
   background: var(--color-sidebar-active);
   color: var(--color-flood);
+  font-weight: 600;
 }
 
 /* ====================================================================
- * Severity Badge Styles
+ * Severity Badge Styles (Light)
  * ==================================================================== */
 .badge {
   display: inline-flex;
@@ -185,31 +186,31 @@ html, body, #root {
 }
 
 .badge-critical {
-  background: rgba(220, 38, 38, 0.2);
-  color: #FCA5A5;
-  border: 1px solid rgba(220, 38, 38, 0.4);
+  background: rgba(220, 38, 38, 0.1);
+  color: #B91C1C;
+  border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .badge-high {
-  background: rgba(239, 68, 68, 0.2);
-  color: #FCA5A5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .badge-medium {
-  background: rgba(245, 158, 11, 0.2);
-  color: #FDE68A;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(217, 119, 6, 0.1);
+  color: #B45309;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .badge-low {
-  background: rgba(16, 185, 129, 0.2);
-  color: #6EE7B7;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+  border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 /* ====================================================================
- * Scrollbar Styles (Dark Theme)
+ * Scrollbar Styles (Light Theme)
  * ==================================================================== */
 ::-webkit-scrollbar {
   width: 6px;
@@ -220,12 +221,12 @@ html, body, #root {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(100, 116, 139, 0.25);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(100, 116, 139, 0.4);
 }
 
 /* ====================================================================

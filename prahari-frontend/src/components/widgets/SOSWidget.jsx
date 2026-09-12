@@ -14,7 +14,7 @@ export default function SOSWidget({ activeCount = 0, recentSOS = [] }) {
           <span className="text-xl">🚨</span>
         </div>
         <div>
-          <p className="text-2xl font-bold" style={{ color: '#FCA5A5' }}>
+          <p className="text-2xl font-bold" style={{ color: '#DC2626' }}>
             {activeCount}
           </p>
           <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
@@ -30,7 +30,7 @@ export default function SOSWidget({ activeCount = 0, recentSOS = [] }) {
             <div
               key={sos.id || i}
               className="flex items-center justify-between px-3 py-2 rounded-lg"
-              style={{ background: 'rgba(30, 41, 59, 0.6)' }}
+              style={{ background: 'rgba(241, 245, 249, 0.8)' }}
             >
               <div>
                 <p className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>

@@ -3,7 +3,7 @@ import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * Login Page — dark-themed glassmorphism login form.
+ * Login Page — light-themed glassmorphism login form.
  * Supports email/password login with error handling.
  */
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center w-full h-full"
-         style={{ background: 'linear-gradient(135deg, #020617 0%, #0F172A 50%, #1E293B 100%)' }}>
+         style={{ background: 'linear-gradient(135deg, #E2E8F0 0%, #F1F5F9 50%, #F8FAFC 100%)' }}>
       <div className="glass-panel p-8 w-full max-w-md mx-4">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
@@ -46,7 +46,7 @@ export default function LoginPage() {
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 rounded-lg text-sm"
-               style={{ background: 'rgba(220, 38, 38, 0.15)', color: '#FCA5A5', border: '1px solid rgba(220, 38, 38, 0.3)' }}>
+               style={{ background: 'rgba(220, 38, 38, 0.08)', color: '#B91C1C', border: '1px solid rgba(220, 38, 38, 0.2)' }}>
             {error}
           </div>
         )}
@@ -65,7 +65,7 @@ export default function LoginPage() {
               required
               className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
               style={{
-                background: 'rgba(30, 41, 59, 0.8)',
+                background: 'rgba(241, 245, 249, 0.8)',
                 border: '1px solid var(--color-panel-border)',
                 color: 'var(--color-text-primary)',
               }}
@@ -85,7 +85,7 @@ export default function LoginPage() {
               required
               className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
               style={{
-                background: 'rgba(30, 41, 59, 0.8)',
+                background: 'rgba(241, 245, 249, 0.8)',
                 border: '1px solid var(--color-panel-border)',
                 color: 'var(--color-text-primary)',
               }}
@@ -99,7 +99,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={{
-              background: loading ? 'rgba(59, 130, 246, 0.5)' : 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
+              background: loading ? 'rgba(37, 99, 235, 0.5)' : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
               color: '#fff',
               cursor: loading ? 'not-allowed' : 'pointer',
             }}

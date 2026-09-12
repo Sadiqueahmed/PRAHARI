@@ -46,7 +46,7 @@ export default function AirQualityCard({ station = 'Guwahati', aqi = 85, polluta
 
       {/* Pollutant info */}
       <div className="flex items-center justify-between px-3 py-2 rounded-lg"
-           style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
+           style={{ background: 'rgba(241, 245, 249, 0.8)' }}>
         <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
           Dominant Pollutant
         </span>

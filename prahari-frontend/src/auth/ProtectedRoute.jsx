@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children, roles }) {
   // Show nothing while checking auth state
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full bg-[#020617]">
+      <div className="flex items-center justify-center w-full h-full bg-[#F1F5F9]">
         <div className="text-[--color-text-secondary] text-sm">Loading...</div>
       </div>
     );

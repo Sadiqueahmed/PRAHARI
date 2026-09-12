@@ -27,7 +27,7 @@ export default function MapContainer({ hazardZones = [], onMapLoad }) {
     // Initialize the map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',   // Dark theme for disaster dashboard
+      style: 'mapbox://styles/mapbox/light-v11',   // Light theme for disaster dashboard
       center: MAP_CENTER,                           // Guwahati, Assam
       zoom: MAP_ZOOM,                               // Show all NE India
       pitch: MAP_PITCH,                             // 2.5D tilt effect
@@ -75,7 +75,7 @@ export default function MapContainer({ hazardZones = [], onMapLoad }) {
           type: 'fill-extrusion',
           minzoom: 14,
           paint: {
-            'fill-extrusion-color': '#1E293B',
+            'fill-extrusion-color': '#CBD5E1',
             'fill-extrusion-height': ['get', 'height'],
             'fill-extrusion-base': ['get', 'min_height'],
             'fill-extrusion-opacity': 0.7,
