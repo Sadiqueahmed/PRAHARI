@@ -16,9 +16,16 @@ import java.util.UUID;
 public interface SOSRepository extends JpaRepository<SOSRequest, UUID> {
 
     /**
-     * Find all active (unresolved) SOS requests.
+     * Find all SOS requests by status with eagerly loaded relationships.
+     * Uses JOIN FETCH to avoid LazyInitializationException during serialization.
      */
-    List<SOSRequest> findByStatusOrderByCreatedAtDesc(String status);
+    @Query("SELECT s FROM SOSRequest s " +
+           "LEFT JOIN FETCH s.user " +
+           "LEFT JOIN FETCH s.hazardZone " +
+           "LEFT JOIN FETCH s.responder " +
+           "WHERE s.status = :status " +
+           "ORDER BY s.createdAt DESC")
+    List<SOSRequest> findByStatusWithRelations(@Param("status") String status);
 
     /**
      * Find all SOS requests by a specific user.

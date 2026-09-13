@@ -82,8 +82,9 @@ public class SOSService {
     /**
      * Get all active SOS requests (for NGO/Government dashboard).
      */
+    @Transactional(readOnly = true)
     public List<SOSRequest> getActiveSOS() {
-        return sosRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
+        return sosRepository.findByStatusWithRelations("ACTIVE");
     }
 
     /**
