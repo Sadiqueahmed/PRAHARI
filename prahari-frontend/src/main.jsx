@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import LoginPage from './auth/LoginPage';
+import RegisterPage from './auth/RegisterPage';
 import App from './App';
 import './index.css';
 
@@ -11,8 +12,9 @@ import './index.css';
  * Prahari Frontend Entry Point.
  * 
  * Routing:
- *   /login  — Public login page
- *   /       — Protected dashboard (requires authentication)
+ *   /login     — Public login page
+ *   /register  — Public registration page
+ *   /          — Protected dashboard (requires authentication)
  */
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -20,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route
             path="/*"
             element={
@@ -33,3 +36,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+

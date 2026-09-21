@@ -13,8 +13,10 @@ import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_PITCH, MAP_BEARING, HAZARD_COLO
  *   @param {Object[]} hazardZones - Array of active hazard zones to render
  *   @param {Object[]} riverStations - Array of RiverStationDTO for map markers
  *   @param {Function} onMapLoad - Callback when the map is fully initialized
+ *   @param {string|null} activeHazardType - Filter map to show only this hazard type (null = all)
+ *   @param {Function} onHazardClick - Callback when a hazard zone polygon is clicked
  */
-export default function MapContainer({ hazardZones = [], riverStations = [], onMapLoad }) {
+export default function MapContainer({ hazardZones = [], riverStations = [], onMapLoad, activeHazardType = null, onHazardClick }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -128,6 +130,12 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
           hazardType: hz.hazardType,
           severity: hz.severity,
           title: hz.title,
+          description: hz.description || '',
+          source: hz.source || '',
+          startedAt: hz.startedAt || '',
+          expiresAt: hz.expiresAt || '',
+          radiusKm: hz.radiusKm || '',
+          isActive: hz.isActive,
           color: HAZARD_COLORS[hz.hazardType]?.primary || '#3B82F6',
         },
         geometry: hz.geometry,
@@ -162,7 +170,7 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       },
     });
 
-    // Add hover tooltip for hazard zones
+    // Hover cursor change
     map.current.on('mouseenter', 'hazard-zones-fill', () => {
       map.current.getCanvas().style.cursor = 'pointer';
     });
@@ -170,7 +178,44 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       map.current.getCanvas().style.cursor = '';
     });
 
+    // Click handler — find the original hazard object and notify parent
+    map.current.on('click', 'hazard-zones-fill', (e) => {
+      if (!onHazardClick || !e.features?.length) return;
+      const clickedId = e.features[0].properties.id;
+      const hazard = hazardZones.find((hz) => hz.id === clickedId);
+      if (hazard) onHazardClick(hazard);
+    });
+
   }, [hazardZones, mapLoaded]);
+
+  // ================================================================
+  // Filter hazard zone layers by activeHazardType (sidebar module)
+  // ================================================================
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+    if (!map.current.getLayer('hazard-zones-fill')) return;
+
+    // Map sidebar module IDs to hazard type strings
+    const typeMap = {
+      floods: 'FLOOD',
+      earthquakes: 'EARTHQUAKE',
+      landslides: 'LANDSLIDE',
+      airquality: 'AIR_QUALITY',
+    };
+
+    const hazardType = typeMap[activeHazardType];
+
+    if (hazardType) {
+      // Show only this hazard type
+      const filter = ['==', ['get', 'hazardType'], hazardType];
+      map.current.setFilter('hazard-zones-fill', filter);
+      map.current.setFilter('hazard-zones-outline', filter);
+    } else {
+      // Show all hazard types (null / 'sos' / 'logistics' / 'layers')
+      map.current.setFilter('hazard-zones-fill', null);
+      map.current.setFilter('hazard-zones-outline', null);
+    }
+  }, [activeHazardType, mapLoaded]);
 
   // ================================================================
   // Render river station markers on the map

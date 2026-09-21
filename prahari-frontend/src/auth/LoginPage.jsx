@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 /**
  * Login Page — light-themed glassmorphism login form.
@@ -108,8 +108,22 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* Register link */}
+        <div className="mt-5 text-center">
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-semibold"
+              style={{ color: '#2563EB', textDecoration: 'none' }}
+            >
+              Create Account
+            </Link>
+          </p>
+        </div>
+
         {/* Demo credentials hint */}
-        <div className="mt-6 text-center">
+        <div className="mt-2 text-center">
           <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
             Demo: admin@prahari.dev / prahari123
           </p>

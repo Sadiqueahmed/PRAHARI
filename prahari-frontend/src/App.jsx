@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './auth/AuthContext';
 import MapContainer from './components/map/MapContainer';
 import Sidebar from './components/layout/Sidebar';
@@ -10,6 +10,9 @@ import SOSWidget from './components/widgets/SOSWidget';
 import AirQualityCard from './components/widgets/AirQualityCard';
 import LoadingSkeleton from './components/common/LoadingSkeleton';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import HazardDetailPanel from './components/hazard/HazardDetailPanel';
+import SOSManagement from './components/sos/SOSManagement';
+import InventoryDashboard from './components/inventory/InventoryDashboard';
 import client from './api/client';
 
 /** Auto-refresh interval for live data (30 seconds) */
@@ -20,21 +23,15 @@ const REFRESH_INTERVAL_MS = 30000;
  * 
  * Architecture:
  *   - Full-screen Mapbox 2.5D map as the background
- *   - Dark sidebar on the left for module navigation
+ *   - Light-themed sidebar on the left for module navigation
  *   - Floating glassmorphism panels overlay the map
+ *   - Context-sensitive side panels (SOS Management, Inventory, Hazard Details)
  *   - SOS panic button in the bottom-right
  * 
- * Layout:
- * ┌──────┬────────────────────────────────────────────┐
- * │      │  [Hazard Summary]      [SOS Widget]        │
- * │  S   │                                            │
- * │  I   │           M A P B O X                      │
- * │  D   │        2.5D TERRAIN                        │
- * │  E   │                                            │
- * │  B   │  [River Levels]    [Air Quality]           │
- * │  A   │                              [SOS Button]  │
- * │  R   │                                            │
- * └──────┴────────────────────────────────────────────┘
+ * Sidebar modules control:
+ *   1. Which hazard layers are visible on the map (filter by type)
+ *   2. Which detail panels are shown (SOS Management, Inventory)
+ *   3. Which floating widgets are relevant
  */
 export default function App() {
   const { user } = useAuth();
@@ -48,6 +45,12 @@ export default function App() {
   const [riverStations, setRiverStations] = useState([]);
   const [sosActiveCount, setSosActiveCount] = useState(0);
   const [sosRecent, setSosRecent] = useState([]);
+  const [airQuality, setAirQuality] = useState(null);
+
+  // ================================================================
+  // UI State — panels & selection
+  // ================================================================
+  const [selectedHazard, setSelectedHazard] = useState(null);
 
   // ================================================================
   // Loading & Error State
@@ -64,6 +67,7 @@ export default function App() {
   });
 
   const isNGOPlus = ['NGO', 'GOVERNMENT', 'SUPER_ADMIN'].includes(user?.role);
+  const isGovPlus = ['GOVERNMENT', 'SUPER_ADMIN'].includes(user?.role);
 
   // ================================================================
   // Data Fetching Functions
@@ -133,6 +137,21 @@ export default function App() {
     }
   }, [isNGOPlus]);
 
+  /**
+   * Fetch air quality data for Guwahati station.
+   */
+  const fetchAirQuality = useCallback(async () => {
+    try {
+      const response = await client.get('/airquality/latest');
+      if (response.data?.data) {
+        setAirQuality(response.data.data);
+      }
+    } catch {
+      // AQI endpoint may not exist yet — fall back to defaults
+      console.log('AQI data not available (endpoint may not be implemented yet)');
+    }
+  }, []);
+
   // ================================================================
   // Initial Data Fetch + Auto-Refresh
   // ================================================================
@@ -142,6 +161,7 @@ export default function App() {
     fetchHazardSummary();
     fetchRiverStations();
     fetchSOSData();
+    fetchAirQuality();
 
     // Auto-refresh interval for live data
     const interval = setInterval(() => {
@@ -150,7 +170,7 @@ export default function App() {
     }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [fetchHazardSummary, fetchRiverStations, fetchSOSData]);
+  }, [fetchHazardSummary, fetchRiverStations, fetchSOSData, fetchAirQuality]);
 
   // ================================================================
   // Transform river station data for the bar chart
@@ -168,6 +188,15 @@ export default function App() {
   // ================================================================
   // Event Handlers
   // ================================================================
+
+  /**
+   * Handle sidebar module change.
+   * Closes any open detail panels when switching modules.
+   */
+  const handleModuleChange = (moduleId) => {
+    setActiveModule(moduleId);
+    setSelectedHazard(null); // Close hazard detail panel on module switch
+  };
 
   /**
    * Handle SOS trigger — sends GPS to backend.
@@ -200,12 +229,47 @@ export default function App() {
     }
   };
 
+  /**
+   * Handle hazard zone click on the map — opens the detail panel.
+   */
+  const handleHazardClick = (hazard) => {
+    setSelectedHazard(hazard);
+  };
+
+  /**
+   * Deactivate a hazard zone (Government+ only).
+   */
+  const handleDeactivateHazard = async (hazardId) => {
+    try {
+      await client.put(`/hazards/${hazardId}/deactivate`);
+      // Refresh hazard data
+      setSelectedHazard(null);
+      const response = await client.get('/hazards');
+      if (response.data?.data) {
+        setHazardZones(response.data.data);
+      }
+      fetchHazardSummary();
+    } catch (err) {
+      console.error('Failed to deactivate hazard:', err);
+    }
+  };
+
+  // ================================================================
+  // Determine which panels/widgets to show based on active module
+  // ================================================================
+  const showSOSPanel = activeModule === 'sos' && isNGOPlus;
+  const showInventoryPanel = activeModule === 'logistics' && isNGOPlus;
+  const showHazardDetail = selectedHazard && !showSOSPanel && !showInventoryPanel;
+
+  // Show floating widgets only when no full-panel is open
+  const showFloatingWidgets = !showSOSPanel && !showInventoryPanel;
+
   return (
     <div className="flex w-full h-full overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar
         activeModule={activeModule}
-        onModuleChange={setActiveModule}
+        onModuleChange={handleModuleChange}
       />
 
       {/* Map + Floating Panels */}
@@ -215,74 +279,115 @@ export default function App() {
           hazardZones={hazardZones}
           riverStations={riverStations}
           onMapLoad={handleMapLoad}
+          activeHazardType={activeModule}
+          onHazardClick={handleHazardClick}
         />
 
         {/* ============================================================
          * Floating Panels — positioned absolutely over the map
+         * Only shown when no full-width panel (SOS/Inventory) is active
          * ============================================================ */}
 
-        {/* Top-Left: Active Hazard Summary (Donut Chart) */}
-        <FloatingPanel
-          title="Active Hazards"
-          className="top-4 left-4"
-          accentColor="#3B82F6"
-        >
-          <ErrorBoundary fallbackMessage="Hazard data failed to load.">
-            {loading.hazards ? (
-              <LoadingSkeleton variant="chart" />
-            ) : (
-              <HazardDonut data={hazardSummary} />
+        {showFloatingWidgets && (
+          <>
+            {/* Top-Left: Active Hazard Summary (Donut Chart) */}
+            <FloatingPanel
+              title="Active Hazards"
+              className="top-4 left-4"
+              accentColor="#3B82F6"
+            >
+              <ErrorBoundary fallbackMessage="Hazard data failed to load.">
+                {loading.hazards ? (
+                  <LoadingSkeleton variant="chart" />
+                ) : (
+                  <HazardDonut data={hazardSummary} />
+                )}
+              </ErrorBoundary>
+            </FloatingPanel>
+
+            {/* Top-Right: SOS Widget (only when hazard detail is not open) */}
+            {!showHazardDetail && (
+              <FloatingPanel
+                title="SOS Alerts"
+                className="top-4 right-4"
+                accentColor="#DC2626"
+              >
+                <ErrorBoundary fallbackMessage="SOS data failed to load.">
+                  {loading.sos ? (
+                    <LoadingSkeleton variant="list" />
+                  ) : (
+                    <SOSWidget
+                      activeCount={sosActiveCount}
+                      recentSOS={sosRecent}
+                    />
+                  )}
+                </ErrorBoundary>
+              </FloatingPanel>
             )}
-          </ErrorBoundary>
-        </FloatingPanel>
 
-        {/* Top-Right: SOS Widget */}
-        <FloatingPanel
-          title="SOS Alerts"
-          className="top-4 right-4"
-          accentColor="#DC2626"
-        >
-          <ErrorBoundary fallbackMessage="SOS data failed to load.">
-            {loading.sos ? (
-              <LoadingSkeleton variant="list" />
-            ) : (
-              <SOSWidget
-                activeCount={sosActiveCount}
-                recentSOS={sosRecent}
-              />
-            )}
-          </ErrorBoundary>
-        </FloatingPanel>
+            {/* Bottom-Left: River Levels (Bar Chart) */}
+            <FloatingPanel
+              title="River Levels — NE India"
+              className="bottom-4 left-4"
+              accentColor="#3B82F6"
+              defaultCollapsed={false}
+            >
+              <ErrorBoundary fallbackMessage="River data failed to load.">
+                {loading.rivers ? (
+                  <LoadingSkeleton variant="chart" />
+                ) : (
+                  <RiverLevelChart data={riverChartData} />
+                )}
+              </ErrorBoundary>
+            </FloatingPanel>
 
-        {/* Bottom-Left: River Levels (Bar Chart) */}
-        <FloatingPanel
-          title="River Levels — NE India"
-          className="bottom-4 left-4"
-          accentColor="#3B82F6"
-          defaultCollapsed={false}
-        >
-          <ErrorBoundary fallbackMessage="River data failed to load.">
-            {loading.rivers ? (
-              <LoadingSkeleton variant="chart" />
-            ) : (
-              <RiverLevelChart data={riverChartData} />
-            )}
-          </ErrorBoundary>
-        </FloatingPanel>
+            {/* Bottom-Center: Air Quality */}
+            <FloatingPanel
+              title="Air Quality Index"
+              className="bottom-4 left-[320px]"
+              accentColor="#8B5CF6"
+              defaultCollapsed={true}
+            >
+              <ErrorBoundary fallbackMessage="AQI data failed to load.">
+                <AirQualityCard
+                  station={airQuality?.stationName || 'Guwahati'}
+                  aqi={airQuality?.aqi || 85}
+                  pollutant={airQuality?.dominantPollutant || 'PM2.5'}
+                />
+              </ErrorBoundary>
+            </FloatingPanel>
+          </>
+        )}
 
-        {/* Bottom-Center: Air Quality */}
-        <FloatingPanel
-          title="Air Quality Index"
-          className="bottom-4 left-[320px]"
-          accentColor="#8B5CF6"
-          defaultCollapsed={true}
-        >
-          <ErrorBoundary fallbackMessage="AQI data failed to load.">
-            <AirQualityCard />
-          </ErrorBoundary>
-        </FloatingPanel>
+        {/* ============================================================
+         * Detail Panels — context-sensitive slide-outs
+         * ============================================================ */}
 
-        {/* SOS Panic Button — Bottom Right */}
+        {/* Hazard Zone Detail (on map polygon click) */}
+        {showHazardDetail && (
+          <HazardDetailPanel
+            hazard={selectedHazard}
+            onClose={() => setSelectedHazard(null)}
+            onDeactivate={handleDeactivateHazard}
+            canManage={isGovPlus}
+          />
+        )}
+
+        {/* SOS Management Panel (for NGO/Government users) */}
+        {showSOSPanel && (
+          <SOSManagement
+            onClose={() => setActiveModule('floods')}
+          />
+        )}
+
+        {/* Inventory Dashboard (for NGO/Government users) */}
+        {showInventoryPanel && (
+          <InventoryDashboard
+            onClose={() => setActiveModule('floods')}
+          />
+        )}
+
+        {/* SOS Panic Button — Always visible, bottom right */}
         <SOSButton onSOSTrigger={handleSOSTrigger} />
       </div>
     </div>
