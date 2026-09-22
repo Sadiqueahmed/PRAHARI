@@ -1,0 +1,9 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "prahari-backend/Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/actuator/health"
+healthcheckTimeout = 60
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

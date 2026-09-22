@@ -1,0 +1,121 @@
+# ====================================================================
+# Project Prahari — Full Stack Production Docker Compose
+# ====================================================================
+# Usage:
+#   docker compose -f docker-compose.prod.yml up --build -d
+#
+# Services:
+#   - postgres:  PostgreSQL 16 + PostGIS 3.4
+#   - backend:   Spring Boot 3.3.5 (Java 21)
+#   - frontend:  React 19 + Nginx
+#   - ingestion: Python data pollers (optional)
+# ====================================================================
+
+services:
+  # ------------------------------------------------------------------
+  # PostgreSQL 16 + PostGIS 3.4
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: prahari-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-prahari}
+      POSTGRES_USER: ${POSTGRES_USER:-prahari_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - prahari_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prahari_admin} -d ${POSTGRES_DB:-prahari}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - prahari-network
+
+  # ------------------------------------------------------------------
+  # Spring Boot Backend
+  # ------------------------------------------------------------------
+  backend:
+    build:
+      context: ./prahari-backend
+      dockerfile: Dockerfile
+    container_name: prahari-backend
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-prahari}
+      POSTGRES_USER: ${POSTGRES_USER:-prahari_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      # Notification channels (optional)
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      FAST2SMS_API_KEY: ${FAST2SMS_API_KEY:-}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prahari-network
+
+  # ------------------------------------------------------------------
+  # React Frontend (Nginx)
+  # ------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./prahari-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN}
+    container_name: prahari-frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 8081
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - prahari-network
+
+  # ------------------------------------------------------------------
+  # Python Data Ingestion (optional — run with --profile ingestion)
+  # ------------------------------------------------------------------
+  ingestion:
+    build:
+      context: ./prahari-ingestion
+      dockerfile: Dockerfile
+    container_name: prahari-ingestion
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-prahari}
+      POSTGRES_USER: ${POSTGRES_USER:-prahari_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      AQICN_API_TOKEN: ${AQICN_API_TOKEN:-}
+      BACKEND_URL: http://backend:8081/api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - ingestion
+    networks:
+      - prahari-network
+
+volumes:
+  prahari_pgdata:
+    driver: local
+
+networks:
+  prahari-network:
+    driver: bridge
