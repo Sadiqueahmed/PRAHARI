@@ -3,8 +3,13 @@
  * Central configuration for API URLs, map defaults, and hazard colors.
  */
 
-/** Backend API base URL — proxied in dev via Vite config */
-export const API_BASE_URL = '/api';
+/**
+ * Backend API base URL.
+ * - Dev: '/api' (proxied by Vite to localhost:8081)
+ * - Production: Set VITE_API_BASE_URL to the full backend URL
+ *   e.g. 'https://prahari-backend.onrender.com/api'
+ */
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /** Mapbox access token — loaded from .env */
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
