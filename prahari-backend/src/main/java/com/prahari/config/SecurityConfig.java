@@ -82,6 +82,9 @@ public class SecurityConfig {
                         // River monitoring data — readable by all authenticated users
                         .requestMatchers(HttpMethod.GET, "/rivers/**").authenticated()
 
+                        // Air quality data — readable by all authenticated users
+                        .requestMatchers(HttpMethod.GET, "/airquality/**").authenticated()
+
                         // Hazard creation — only backend services (via API key) or GOVERNMENT+
                         .requestMatchers(HttpMethod.POST, "/hazards/**").hasAnyAuthority(
                                 "GOVERNMENT", "SUPER_ADMIN")
