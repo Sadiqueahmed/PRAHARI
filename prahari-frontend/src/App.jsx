@@ -14,6 +14,7 @@ import HazardDetailPanel from './components/hazard/HazardDetailPanel';
 import SOSManagement from './components/sos/SOSManagement';
 import InventoryDashboard from './components/inventory/InventoryDashboard';
 import client from './api/client';
+import { getInitialStateFromURL } from './hooks/useShareableURL';
 
 /** Auto-refresh interval for live data (30 seconds) */
 const REFRESH_INTERVAL_MS = 30000;
@@ -35,7 +36,13 @@ const REFRESH_INTERVAL_MS = 30000;
  */
 export default function App() {
   const { user } = useAuth();
-  const [activeModule, setActiveModule] = useState('floods');
+
+  // Read initial state from URL for deep linking
+  const urlState = getInitialStateFromURL();
+  const initialModule = urlState.hazardType
+    ? { FLOOD: 'floods', EARTHQUAKE: 'earthquakes', LANDSLIDE: 'landslides', AIR_QUALITY: 'airquality' }[urlState.hazardType] || 'floods'
+    : 'floods';
+  const [activeModule, setActiveModule] = useState(initialModule);
 
   // ================================================================
   // Data State — fetched from backend APIs

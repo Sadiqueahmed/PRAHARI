@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_PITCH, MAP_BEARING, HAZARD_COLORS } from '../../utils/constants';
+import MapStyleSwitcher from './MapStyleSwitcher';
+import VoiceSearch from './VoiceSearch';
+import ShareButton from './ShareButton';
 
 /**
  * MapContainer — Full-screen Mapbox GL JS 2.5D terrain map.
@@ -404,10 +407,17 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
     );
   }
 
+  // Voice command handler — bridges voice search to sidebar module
+  const handleVoiceCommand = useCallback((command) => {
+    // If voice found a hazard type, notify parent to switch module
+    if (command.hazardType && onHazardClick) {
+      // Voice commands that match hazard types can be extended here
+    }
+  }, [onHazardClick]);
+
   return (
     <div
-      ref={mapContainer}
-      id="map-container"
+      id="map-wrapper"
       style={{
         position: 'absolute',
         top: 0,
@@ -417,6 +427,29 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
         width: '100%',
         height: '100%',
       }}
-    />
+    >
+      <div
+        ref={mapContainer}
+        id="map-container"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      />
+
+      {/* Floating map controls — inspired by Gods Eye View */}
+      {mapLoaded && (
+        <>
+          <ShareButton />
+          <VoiceSearch mapRef={map} onCommand={handleVoiceCommand} />
+          <MapStyleSwitcher mapRef={map} />
+        </>
+      )}
+    </div>
   );
 }

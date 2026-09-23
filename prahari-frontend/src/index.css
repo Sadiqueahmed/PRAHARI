@@ -250,3 +250,27 @@ html, body, #root {
   fill: var(--color-text-secondary) !important;
   font-size: 0.75rem;
 }
+
+/* ====================================================================
+ * Map Controls — Animations (Gods Eye View inspired)
+ * ==================================================================== */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
