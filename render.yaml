@@ -1,0 +1,104 @@
+# ====================================================================
+# Render.com — Infrastructure as Code (render.yaml)
+# Deploy the full Prahari stack with one click
+# ====================================================================
+# Usage:
+#   1. Connect your GitHub repo to Render
+#   2. Render auto-detects this file and creates all services
+#   3. Set the environment variables in the Render dashboard
+#
+# Docs: https://docs.render.com/infrastructure-as-code
+# ====================================================================
+
+databases:
+  # ------------------------------------------------------------------
+  # PostgreSQL 16 — includes PostGIS via Render's managed PostgreSQL
+  # ------------------------------------------------------------------
+  - name: prahari-db
+    plan: free
+    databaseName: prahari
+    user: prahari_admin
+    postgresMajorVersion: "16"
+    ipAllowList: []  # Only allow internal connections
+
+services:
+  # ------------------------------------------------------------------
+  # Spring Boot Backend (Java 21)
+  # Builds from prahari-backend/Dockerfile
+  # ------------------------------------------------------------------
+  - type: web
+    name: prahari-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./prahari-backend/Dockerfile
+    dockerContext: ./prahari-backend
+    healthCheckPath: /api/actuator/health
+    envVars:
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: prahari-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: prahari-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: prahari-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: prahari-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: prahari-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: "86400000"
+      - key: FRONTEND_URL
+        fromService:
+          name: prahari-frontend
+          type: web
+          property: host
+      - key: SERVER_PORT
+        value: "8081"
+      # Optional notification channels — set in Render dashboard
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: FAST2SMS_API_KEY
+        sync: false
+
+  # ------------------------------------------------------------------
+  # React Frontend (Static Site with Nginx)
+  # Builds from prahari-frontend/Dockerfile
+  # ------------------------------------------------------------------
+  - type: web
+    name: prahari-frontend
+    runtime: static
+    plan: free
+    buildCommand: cd prahari-frontend && npm ci && npm run build
+    staticPublishPath: ./prahari-frontend/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_MAPBOX_TOKEN
+        sync: false
+      # Set this manually after backend deploys, e.g.:
+      # https://prahari-backend.onrender.com/api
+      - key: VITE_API_BASE_URL
+        sync: false
