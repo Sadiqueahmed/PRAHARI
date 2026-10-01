@@ -4,6 +4,11 @@ import { MAPBOX_TOKEN, MAP_CENTER, MAP_ZOOM, MAP_PITCH, MAP_BEARING, HAZARD_COLO
 import MapStyleSwitcher from './MapStyleSwitcher';
 import VoiceSearch from './VoiceSearch';
 import ShareButton from './ShareButton';
+import WeatherOverlay from './WeatherOverlay';
+import LiveFlightTracker from './LiveFlightTracker';
+import LiveRailwayTracker from './LiveRailwayTracker';
+import SceneDirector from './SceneDirector';
+import NearbyHazardsPanel from './NearbyHazardsPanel';
 
 /**
  * MapContainer — Full-screen Mapbox GL JS 2.5D terrain map.
@@ -25,6 +30,8 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(null);
   const popupRef = useRef(null);
+  const [mapCenter, setMapCenter] = useState({ lng: MAP_CENTER[0], lat: MAP_CENTER[1] });
+  const [showNearbyPanel, setShowNearbyPanel] = useState(false);
 
   useEffect(() => {
     if (map.current) return; // Prevent double initialization
@@ -66,6 +73,18 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       });
       map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
 
+      // Add hillshade layer for enhanced terrain visibility
+      map.current.addLayer({
+        id: 'hillshade',
+        type: 'hillshade',
+        source: 'mapbox-dem',
+        paint: {
+          'hillshade-shadow-color': '#473B24',
+          'hillshade-illumination-anchor': 'map',
+          'hillshade-exaggeration': 0.3,
+        },
+      }, 'land-structure-polygon');
+
       // Add atmospheric sky effect
       map.current.setFog({
         color: 'rgb(10, 15, 30)',         // Dark fog for nighttime disaster feel
@@ -103,6 +122,13 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       if (onMapLoad) onMapLoad(map.current);
     });
 
+    // Track map center for Nearby Hazards panel
+    map.current.on('moveend', () => {
+      if (!map.current) return;
+      const center = map.current.getCenter();
+      setMapCenter({ lng: center.lng, lat: center.lat });
+    });
+
     // Cleanup on unmount
     return () => {
       if (map.current) {
@@ -117,7 +143,7 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
     if (!mapLoaded || !map.current || !hazardZones.length) return;
 
     // Remove existing hazard layers before re-adding
-    const existingLayers = ['hazard-zones-fill', 'hazard-zones-outline'];
+    const existingLayers = ['hazard-zones-fill', 'hazard-zones-outline', 'hazard-zones-labels'];
     existingLayers.forEach((layerId) => {
       if (map.current.getLayer(layerId)) map.current.removeLayer(layerId);
     });
@@ -173,6 +199,31 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       },
     });
 
+    // ── Detection Overlay: hazard zone labels with severity badges ──
+    map.current.addLayer({
+      id: 'hazard-zones-labels',
+      type: 'symbol',
+      source: 'hazard-zones',
+      layout: {
+        'text-field': ['concat',
+          ['upcase', ['slice', ['get', 'severity'], 0, 1]],
+          ' ',
+          ['get', 'title'],
+        ],
+        'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 11,
+        'text-anchor': 'center',
+        'text-allow-overlap': false,
+        'text-ignore-placement': false,
+        'text-max-width': 12,
+      },
+      paint: {
+        'text-color': '#1E293B',
+        'text-halo-color': 'rgba(255,255,255,0.9)',
+        'text-halo-width': 1.5,
+      },
+    });
+
     // Hover cursor change
     map.current.on('mouseenter', 'hazard-zones-fill', () => {
       map.current.getCanvas().style.cursor = 'pointer';
@@ -213,10 +264,16 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
       const filter = ['==', ['get', 'hazardType'], hazardType];
       map.current.setFilter('hazard-zones-fill', filter);
       map.current.setFilter('hazard-zones-outline', filter);
+      if (map.current.getLayer('hazard-zones-labels')) {
+        map.current.setFilter('hazard-zones-labels', filter);
+      }
     } else {
       // Show all hazard types (null / 'sos' / 'logistics' / 'layers')
       map.current.setFilter('hazard-zones-fill', null);
       map.current.setFilter('hazard-zones-outline', null);
+      if (map.current.getLayer('hazard-zones-labels')) {
+        map.current.setFilter('hazard-zones-labels', null);
+      }
     }
   }, [activeHazardType, mapLoaded]);
 
@@ -415,6 +472,38 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
     }
   }, [onHazardClick]);
 
+  /**
+   * Fly the camera to a specific hazard zone — used by NearbyHazardsPanel.
+   * Calculates centroid and uses Mapbox's cinematic flyTo.
+   */
+  const flyToHazard = useCallback((hazard) => {
+    if (!map.current || !hazard?.geometry) return;
+
+    let center;
+    if (hazard.geometry.type === 'Point') {
+      center = hazard.geometry.coordinates;
+    } else if (hazard.geometry.type === 'Polygon' && hazard.geometry.coordinates?.[0]) {
+      const ring = hazard.geometry.coordinates[0];
+      const sum = ring.reduce((acc, c) => [acc[0] + c[0], acc[1] + c[1]], [0, 0]);
+      center = [sum[0] / ring.length, sum[1] / ring.length];
+    }
+
+    if (!center) return;
+
+    map.current.flyTo({
+      center,
+      zoom: 11,
+      pitch: 55,
+      bearing: -15,
+      duration: 2500,
+      essential: true,
+      curve: 1.42,
+    });
+
+    // Also trigger the detail panel
+    if (onHazardClick) onHazardClick(hazard);
+  }, [onHazardClick]);
+
   return (
     <div
       id="map-wrapper"
@@ -448,6 +537,60 @@ export default function MapContainer({ hazardZones = [], riverStations = [], onM
           <ShareButton />
           <VoiceSearch mapRef={map} onCommand={handleVoiceCommand} />
           <MapStyleSwitcher mapRef={map} />
+          <WeatherOverlay mapRef={map} mapLoaded={mapLoaded} />
+          <LiveFlightTracker mapRef={map} mapLoaded={mapLoaded} />
+          <LiveRailwayTracker mapRef={map} mapLoaded={mapLoaded} />
+
+          {/* Nearby Hazards toggle button */}
+          <button
+            onClick={() => setShowNearbyPanel(!showNearbyPanel)}
+            title="Nearby hazards"
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              zIndex: 10,
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              border: showNearbyPanel
+                ? '1px solid rgba(220, 38, 38, 0.3)'
+                : '1px solid rgba(0,0,0,0.1)',
+              background: showNearbyPanel
+                ? 'rgba(220, 38, 38, 0.08)'
+                : 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              transition: 'transform 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            📡
+          </button>
+
+          {/* Nearby Hazards Panel */}
+          {showNearbyPanel && (
+            <NearbyHazardsPanel
+              hazardZones={hazardZones}
+              mapCenter={mapCenter}
+              onFlyTo={flyToHazard}
+              onClose={() => setShowNearbyPanel(false)}
+            />
+          )}
+
+          {/* Scene Director — cinematic auto-tour */}
+          <SceneDirector
+            mapRef={map}
+            mapLoaded={mapLoaded}
+            hazardZones={hazardZones}
+            onHazardFocus={onHazardClick}
+          />
         </>
       )}
     </div>

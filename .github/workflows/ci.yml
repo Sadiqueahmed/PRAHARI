@@ -79,5 +79,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Check syntax
-        run: python -m py_compile run_all.py aqicn_poller.py usgs_poller.py cwc_scraper.py lhasa_processor.py db.py config.py
+        run: |
+          for f in run_all.py aqicn_poller.py usgs_poller.py cwc_scraper.py lhasa_processor.py db.py config.py; do
+            echo "Checking $f..."
+            python -m py_compile "$f"
+          done

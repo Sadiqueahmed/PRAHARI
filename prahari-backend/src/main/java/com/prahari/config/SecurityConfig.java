@@ -98,6 +98,9 @@ public class SecurityConfig {
                         .requestMatchers("/inventory/**").hasAnyAuthority(
                                 "NGO", "GOVERNMENT", "SUPER_ADMIN")
 
+                        // User profile — any authenticated user can manage their own profile
+                        .requestMatchers("/users/me/**").authenticated()
+
                         // Admin endpoints — SUPER_ADMIN only
                         .requestMatchers("/admin/**").hasAuthority("SUPER_ADMIN")
 

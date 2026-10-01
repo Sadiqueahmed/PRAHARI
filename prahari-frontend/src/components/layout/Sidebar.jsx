@@ -47,6 +47,16 @@ const Icons = {
       <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
     </svg>
   ),
+  Admin: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  ),
+  Profile: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
   Collapse: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="11 17 6 12 11 7" /><polyline points="18 17 13 12 18 7" />
@@ -65,6 +75,7 @@ export default function Sidebar({ activeModule, onModuleChange }) {
 
   const isNGOPlus = ['NGO', 'GOVERNMENT', 'SUPER_ADMIN'].includes(user?.role);
   const isGovPlus = ['GOVERNMENT', 'SUPER_ADMIN'].includes(user?.role);
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   const modules = [
     { id: 'floods', label: 'Floods', icon: Icons.Flood, color: '#3B82F6', show: true },
@@ -74,6 +85,8 @@ export default function Sidebar({ activeModule, onModuleChange }) {
     { id: 'sos', label: 'SOS Alerts', icon: Icons.SOS, color: '#DC2626', show: true },
     { id: 'logistics', label: 'Logistics', icon: Icons.Logistics, color: '#10B981', show: isNGOPlus },
     { id: 'layers', label: 'Map Layers', icon: Icons.Layers, color: '#94A3B8', show: true },
+    { id: 'profile', label: 'My Profile', icon: Icons.Profile, color: '#6366F1', show: true },
+    { id: 'admin', label: 'Admin Panel', icon: Icons.Admin, color: '#8B5CF6', show: isSuperAdmin },
   ];
 
   return (

@@ -13,6 +13,8 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import HazardDetailPanel from './components/hazard/HazardDetailPanel';
 import SOSManagement from './components/sos/SOSManagement';
 import InventoryDashboard from './components/inventory/InventoryDashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
+import UserProfile from './components/user/UserProfile';
 import client from './api/client';
 import { getInitialStateFromURL } from './hooks/useShareableURL';
 
@@ -266,10 +268,12 @@ export default function App() {
   // ================================================================
   const showSOSPanel = activeModule === 'sos' && isNGOPlus;
   const showInventoryPanel = activeModule === 'logistics' && isNGOPlus;
-  const showHazardDetail = selectedHazard && !showSOSPanel && !showInventoryPanel;
+  const showAdminPanel = activeModule === 'admin' && user?.role === 'SUPER_ADMIN';
+  const showProfilePanel = activeModule === 'profile';
+  const showHazardDetail = selectedHazard && !showSOSPanel && !showInventoryPanel && !showAdminPanel && !showProfilePanel;
 
   // Show floating widgets only when no full-panel is open
-  const showFloatingWidgets = !showSOSPanel && !showInventoryPanel;
+  const showFloatingWidgets = !showSOSPanel && !showInventoryPanel && !showAdminPanel && !showProfilePanel;
 
   return (
     <div className="flex w-full h-full overflow-hidden">
@@ -390,6 +394,20 @@ export default function App() {
         {/* Inventory Dashboard (for NGO/Government users) */}
         {showInventoryPanel && (
           <InventoryDashboard
+            onClose={() => setActiveModule('floods')}
+          />
+        )}
+
+        {/* Admin Dashboard (SUPER_ADMIN only) */}
+        {showAdminPanel && (
+          <AdminDashboard
+            onClose={() => setActiveModule('floods')}
+          />
+        )}
+
+        {/* User Profile Panel */}
+        {showProfilePanel && (
+          <UserProfile
             onClose={() => setActiveModule('floods')}
           />
         )}
